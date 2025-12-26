@@ -1,0 +1,4 @@
+?page=/var/www/html/DVWA/hackable/uploads/toxic.jpg
+
+toxic - for hdung.jpg
+?page=/var/www/html/uploads/evidence.txt

