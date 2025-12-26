@@ -4,24 +4,19 @@ services:
   nginx:
     container_name: web_nginx
     build: ./nginx
-    image: owasp/modsecurity-crs:nginx-alpine
-    restart: always
+    restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "80:80"  # Chỉ cần port 80
     environment:
       - TZ=Asia/Ho_Chi_Minh
       - BACKEND=http://app:8080
       - PARANOIA=1
       - ANOMALY_INBOUND=5
       - SEC_RULE_ENGINE=On
-      - AUDIT_ENGINE=RelevantOnly
-      - AUDIT_LOG_FORMAT=JSON
-      - MODSEC_AUDIT_LOG_TYPE=Serial
-      - MODSEC_AUDIT_LOG=/var/log/modsecurity/audit.log
     volumes:
-      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
       - ./nginx/custom:/etc/modsecurity.d/owasp-crs/rules:ro
+      - ./nginx/modsecurity.conf:/etc/nginx/modsec/modsecurity.conf:ro
+      - modsec_logs:/var/log/modsecurity
     depends_on:
       - app
     networks:
@@ -30,6 +25,7 @@ services:
   app:
     container_name: web_app
     build: .
+    restart: unless-stopped
     expose:
       - "8080"
     ports:
@@ -44,7 +40,7 @@ services:
   mysql:
     container_name: web_mysql
     image: mysql:8.0
-    restart: always
+    restart: unless-stopped
     environment:
       MYSQL_DATABASE: demo_db
       MYSQL_USER: user
@@ -53,12 +49,17 @@ services:
       TZ: Asia/Ho_Chi_Minh
     volumes:
       - ./database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - mysql_data:/var/lib/mysql
     expose:
       - "3306"
     ports:
       - "3306:3306"
     networks:
       - app-net
+
+volumes:
+  mysql_data:
+  modsec_logs:
 
 networks:
   app-net:

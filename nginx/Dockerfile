@@ -1,19 +1,20 @@
-
 FROM owasp/modsecurity-crs:nginx-alpine
 
 USER root
 
-# Install libmagic (file)
-RUN apk add --no-cache file
+# Install libmagic (file) và curl cho việc debug
+RUN apk add --no-cache file curl
+
+# Tạo thư mục log cho ModSecurity
+RUN mkdir -p /var/log/modsecurity
+RUN chown -R nginx:nginx /var/log/modsecurity
 
 USER nginx
 
-# Copy simplified nginx configuration directly
+# Copy nginx configuration
 COPY default.conf /etc/nginx/conf.d/default.conf
+COPY modsecurity.conf /etc/nginx/modsec/modsecurity.conf
 
-# Create ssl folder (user can mount certs)
-RUN mkdir -p /etc/nginx/ssl
-
-EXPOSE 80 443
+EXPOSE 80
 
 CMD ["nginx", "-g", "daemon off;"]
