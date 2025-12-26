@@ -1,34 +1,20 @@
-FROM nginx:alpine
+# Dùng image có sẵn ModSecurity từ bạn tôi
+FROM owasp/modsecurity-crs:nginx-alpine
 
-# Cài đặt ModSecurity cho nginx
-RUN apk add --no-cache \
-    nginx-mod-http-modsecurity \
-    modsecurity-crs \
-    libmagic \
-    curl
+USER root
 
-# Tạo thư mục cần thiết
-RUN mkdir -p /etc/nginx/modsec \
-    /var/log/modsecurity \
-    /etc/modsecurity.d/owasp-crs/rules
+# Cài libmagic (file) và curl
+RUN apk add --no-cache file curl
 
-# Copy cấu hình ModSecurity
-COPY modsecurity.config /etc/nginx/modsec/modsecurity.conf
-
-# Copy SSL certificates (nếu có)
-RUN mkdir -p /etc/nginx/ssl
+USER nginx
 
 # Copy nginx config
 COPY default.conf /etc/nginx/conf.d/default.conf
 
-# Tạo file mẫu cho custom rules nếu thư mục modsec trống
-RUN if [ ! -f /etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf ]; then \
-    echo '# Custom ModSecurity rules can be added here' > /etc/modsecurity.d/owasp-crs/rules/REQUEST-900-EXCLUSION-RULES-BEFORE-CRS.conf; \
-    fi
+# Copy ModSecurity config
+COPY modsecurity.config /etc/nginx/modsec/modsecurity.conf
 
-# Kiểm tra cấu hình nginx
-RUN nginx -t
+# Tạo thư mục SSL (nếu cần)
+RUN mkdir -p /etc/nginx/ssl
 
-EXPOSE 80 443
-
-CMD ["nginx", "-g", "daemon off;"]
+EXPOSE 80
